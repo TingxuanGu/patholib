@@ -1,0 +1,19 @@
+# patholib - Pathology Image Analysis Library
+# Core dependencies (CPU-only, ~200MB)
+numpy>=1.24,<2.0
+scipy>=1.10
+scikit-image>=0.21
+opencv-python-headless>=4.8
+Pillow>=10.0
+matplotlib>=3.7
+
+# --- Optional: WSI support ---
+# openslide-python>=1.3.1
+# (also requires system-level OpenSlide: apt install openslide-tools)
+
+# --- Optional: Deep learning cell detection ---
+# cellpose>=3.0
+# torch>=2.0  (install via https://pytorch.org/get-started/locally/ for GPU)
+
+# --- Optional: GPU acceleration for cellpose ---
+# torch with CUDA: pip install torch --index-url https://download.pytorch.org/whl/cu121
