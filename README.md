@@ -1,5 +1,7 @@
 # patholib - Pathology Image Analysis Library
 
+[English](README.md) | [中文](README_CN.md)
+
 ![Status](https://img.shields.io/badge/status-experimental-orange) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
 
 **⚠️ Experimental / Beta**: This library is under active development. APIs may change. Test coverage is incomplete. Use with caution in production environments.
