@@ -42,9 +42,17 @@ def load_image(path: str, level: int = 0, region: Optional[Tuple[int, int, int, 
     ext = p.suffix.lower()
 
     if ext in WSI_EXTENSIONS and _has_openslide():
-        return _load_wsi(str(p), level=level, region=region)
-    else:
-        return _load_regular(str(p), region=region)
+        try:
+            return _load_wsi(str(p), level=level, region=region)
+        except Exception as exc:
+            if ext not in REGULAR_EXTENSIONS:
+                raise
+            logger.warning(
+                "Falling back to regular image loader for %s after OpenSlide error: %s",
+                path,
+                exc,
+            )
+    return _load_regular(str(p), region=region)
 
 
 def _has_openslide() -> bool:

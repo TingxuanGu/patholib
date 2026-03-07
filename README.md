@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-![Status](https://img.shields.io/badge/status-experimental-orange) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![Status](https://img.shields.io/badge/status-experimental-orange) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 
 **⚠️ Experimental / Beta**: This library is under active development. APIs may change. Test coverage is incomplete. Use with caution in production environments.
 
@@ -74,7 +74,8 @@ python analyze_he.py --input tissue.tif --mode both --use-gpu \
 ### Key Flags
 - `--fail-fast`: Abort if specialized analyzer is unavailable (instead of silent fallback)
 - `--use-gpu`: Enable GPU acceleration for Cellpose (H&E analysis)
-- `--normalize-stain`: Apply Reinhard stain normalization before analysis
+- `--grid-size`: Uses micrometers when `--mpp` is set, otherwise pixels
+- `--normalize-stain`: Apply stain normalization before analysis
 
 ## Output
 - `*_report.json`: Full analysis report with all metrics

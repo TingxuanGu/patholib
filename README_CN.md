@@ -2,7 +2,7 @@
 
 [English](README.md) | [中文](README_CN.md)
 
-![Status](https://img.shields.io/badge/status-experimental-orange) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.8%2B-blue)
+![Status](https://img.shields.io/badge/status-experimental-orange) ![License](https://img.shields.io/badge/license-MIT-blue) ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 
 **⚠️ 实验性 / 测试版**: 本库正在积极开发中。API 可能会发生变化。测试覆盖不完整。在生产环境中请谨慎使用。
 
@@ -74,7 +74,8 @@ python analyze_he.py --input tissue.tif --mode both --use-gpu \
 ### 关键参数
 - `--fail-fast`: 如果专用分析器不可用则中止（而不是静默回退）
 - `--use-gpu`: 为 Cellpose 启用 GPU 加速（H&E 分析）
-- `--normalize-stain`: 分析前应用 Reinhard 染色归一化
+- `--grid-size`: 设置了 `--mpp` 时按微米解释，否则按像素解释
+- `--normalize-stain`: 分析前应用染色归一化
 
 ## 输出文件
 - `*_report.json`: 包含所有指标的完整分析报告

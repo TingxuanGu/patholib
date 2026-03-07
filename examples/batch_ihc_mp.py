@@ -5,6 +5,7 @@ Batch GPX4 IHC analysis with MULTIPROCESSING for 64-core CPU.
 Parallelizes tile processing within each sample using multiprocessing.Pool.
 """
 
+import argparse
 import os
 import re
 import json
@@ -16,17 +17,26 @@ from multiprocessing import Pool, cpu_count
 from functools import partial
 
 import numpy as np
-from PIL import Image
-from skimage import measure, morphology
-from scipy import ndimage
 import warnings
 warnings.filterwarnings('ignore')
 
+EXAMPLES_DIR = os.path.dirname(__file__)
+REPO_ROOT = os.path.dirname(EXAMPLES_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+try:
+    from PIL import Image
+    from skimage import measure, morphology
+    from scipy import ndimage
+    IMPORT_ERROR = None
+except ImportError as exc:
+    Image = None
+    measure = morphology = ndimage = None
+    IMPORT_ERROR = exc
+
 from patholib.io.image_loader import load_image, get_wsi_info
 from patholib.stain.color_deconv import separate_stains
-
-INPUT_DIR = "/home/bio/桌面/Tingxuan Gu/analysis/WYJ HE-IHC results/WYJ IHC"
-OUTPUT_DIR = os.path.join(INPUT_DIR, "results")
 
 # Processing parameters
 TISSUE_LEVEL = 6
@@ -56,6 +66,43 @@ N_WORKERS = min(60, cpu_count())  # Use up to 60 cores
 GROUP_ORDER = ["con", "4NQO", "4NQO+Low-Se", "4NQO+Low-Se+L-MSC", "4NQO+Low-Se+Se-Met"]
 
 
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description="Batch GPX4 IHC analysis for .mrxs whole-slide images with multiprocessing."
+    )
+    parser.add_argument(
+        "--input-dir",
+        required=True,
+        help="Directory containing input .mrxs slides",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Directory for reports, overlays, and CSVs (default: <input-dir>/results)",
+    )
+    return parser
+
+
+def _resolve_io_dirs(args):
+    input_dir = os.path.abspath(args.input_dir)
+    if not os.path.isdir(input_dir):
+        raise SystemExit(f"Input directory not found: {input_dir}")
+    output_dir = (
+        os.path.abspath(args.output_dir)
+        if args.output_dir
+        else os.path.join(input_dir, "results")
+    )
+    return input_dir, output_dir
+
+
+def _require_dependencies():
+    if IMPORT_ERROR is not None:
+        raise RuntimeError(
+            "examples/batch_ihc_mp.py requires optional imaging dependencies. "
+            "Install Pillow, scipy, and scikit-image before running it."
+        ) from IMPORT_ERROR
+
+
 def parse_group(filename):
     """Extract group name from filename."""
     m = re.match(r'^(.+)-(\d+)\.mrxs$', filename)
@@ -66,6 +113,7 @@ def parse_group(filename):
 
 def detect_tissue_region(wsi_path, level=6):
     """Detect tissue bounding box at low resolution."""
+    _require_dependencies()
     thumb = load_image(wsi_path, level=level)
     gray = np.mean(thumb.astype(float), axis=2) / 255.0
 
@@ -86,6 +134,7 @@ def detect_tissue_region(wsi_path, level=6):
 
 def detect_nuclei_watershed_ihc(hematoxylin_od, rgb_tile):
     """Detect nuclei from hematoxylin OD using watershed."""
+    _require_dependencies()
     from skimage.filters import threshold_otsu
     from skimage.feature import peak_local_max
     from skimage.segmentation import watershed as skwatershed
@@ -131,6 +180,7 @@ def detect_nuclei_watershed_ihc(hematoxylin_od, rgb_tile):
 
 def measure_cytoplasmic_dab(labels, dab_channel):
     """Measure DAB intensity in cytoplasmic ring."""
+    _require_dependencies()
     cell_data = []
     grade_counts = {0: 0, 1: 0, 2: 0, 3: 0}
 
@@ -177,6 +227,7 @@ def process_single_tile(args):
 
     Returns lightweight data only (no large arrays through IPC).
     """
+    _require_dependencies()
     wsi_path, tile_x_l0, tile_y_l0, tx, ty, stride, ds_analysis = args
 
     try:
@@ -217,6 +268,7 @@ def process_single_tile(args):
 
 def analyze_wsi_tiled_mp(wsi_path, info):
     """Analyze WSI using multiprocessing for tile processing."""
+    _require_dependencies()
     tissue_bbox = detect_tissue_region(wsi_path, level=TISSUE_LEVEL)
     if tissue_bbox is None:
         print("  No tissue detected")
@@ -333,10 +385,14 @@ def analyze_wsi_tiled_mp(wsi_path, info):
     }
 
 
-def main():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    input_dir, output_dir = _resolve_io_dirs(args)
+    _require_dependencies()
 
-    mrxs_files = sorted(f for f in os.listdir(INPUT_DIR) if f.endswith('.mrxs'))
+    os.makedirs(output_dir, exist_ok=True)
+
+    mrxs_files = sorted(f for f in os.listdir(input_dir) if f.endswith('.mrxs'))
     print(f"Found {len(mrxs_files)} .mrxs files")
     print(f"Using {N_WORKERS} worker processes\n")
 
@@ -344,7 +400,7 @@ def main():
     group_results = defaultdict(list)
 
     for i, fname in enumerate(mrxs_files, 1):
-        path = os.path.join(INPUT_DIR, fname)
+        path = os.path.join(input_dir, fname)
         name = os.path.splitext(fname)[0]
         group = parse_group(fname)
 
@@ -401,14 +457,14 @@ def main():
         report = {k: v for k, v in slide_result.items()}
         report["stain_type"] = "cytoplasmic"
         report["marker"] = MARKER
-        report_path = os.path.join(OUTPUT_DIR, f"{name}_report.json")
+        report_path = os.path.join(output_dir, f"{name}_report.json")
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         # Save cell data CSV
         cell_data = results.get("cell_data", [])
         if cell_data:
-            csv_path = os.path.join(OUTPUT_DIR, f"{name}_cells.csv")
+            csv_path = os.path.join(output_dir, f"{name}_cells.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=[
                     "centroid", "area", "grade", "cytoplasmic_intensity", "cell_type"
@@ -419,7 +475,7 @@ def main():
         # Save overlay
         overlay = results.get("overlay")
         if overlay is not None:
-            overlay_path = os.path.join(OUTPUT_DIR, f"{name}_overlay.png")
+            overlay_path = os.path.join(output_dir, f"{name}_overlay.png")
             Image.fromarray(overlay).save(overlay_path)
 
         del results
@@ -478,7 +534,7 @@ def main():
         print(f"{grp:<25} {n:>3} {hs_str:>16} {pp_str:>16} {tc_str:>14}")
 
     # Save summary
-    summary_path = os.path.join(OUTPUT_DIR, "summary.json")
+    summary_path = os.path.join(output_dir, "summary.json")
     with open(summary_path, "w") as f:
         json.dump({
             "per_slide": all_results,
@@ -502,4 +558,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

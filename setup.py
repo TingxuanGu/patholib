@@ -7,7 +7,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='patholib',
-    version='0.1.0',
+    version='0.2.0',
     description='Pathology Image Analysis Library for IHC and H&E',
     packages=find_packages(),
     python_requires='>=3.9',

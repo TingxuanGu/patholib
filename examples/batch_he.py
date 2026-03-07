@@ -6,6 +6,7 @@ Uses tile-based processing at level 2 (4x downsample, ~1.08 um/px) with
 adaptive thresholding for nucleus detection.
 """
 
+import argparse
 import os
 import re
 import json
@@ -14,21 +15,29 @@ import sys
 from collections import defaultdict
 
 import numpy as np
-from PIL import Image
-from skimage import filters, morphology, measure
-from skimage.color import rgb2hed
-from skimage.feature import peak_local_max
-from skimage.segmentation import watershed as skwatershed
-from skimage.filters import gaussian
-from scipy import ndimage
 import warnings
 warnings.filterwarnings('ignore')
 
+EXAMPLES_DIR = os.path.dirname(__file__)
+REPO_ROOT = os.path.dirname(EXAMPLES_DIR)
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
+
+try:
+    from PIL import Image
+    from skimage import filters, morphology, measure
+    from skimage.color import rgb2hed
+    from skimage.feature import peak_local_max
+    from skimage.segmentation import watershed as skwatershed
+    from skimage.filters import gaussian
+    from scipy import ndimage
+    IMPORT_ERROR = None
+except ImportError as exc:
+    Image = None
+    filters = morphology = measure = rgb2hed = peak_local_max = skwatershed = gaussian = ndimage = None
+    IMPORT_ERROR = exc
+
 from patholib.io.image_loader import load_image, get_wsi_info
-
-
-INPUT_DIR = "/home/bio/桌面/Tingxuan Gu/analysis/WYJ HE-IHC results/WYJ HE"
-OUTPUT_DIR = os.path.join(INPUT_DIR, "results")
 
 # Processing parameters
 TISSUE_LEVEL = 6  # For tissue detection
@@ -51,6 +60,43 @@ SEVERE_THRESHOLD = 500
 SCORE_LABELS = {0: "None", 1: "Mild", 2: "Moderate", 3: "Severe"}
 
 
+def build_parser():
+    parser = argparse.ArgumentParser(
+        description="Batch H&E inflammation analysis for .mrxs whole-slide images."
+    )
+    parser.add_argument(
+        "--input-dir",
+        required=True,
+        help="Directory containing input .mrxs slides",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Directory for reports and CSVs (default: <input-dir>/results)",
+    )
+    return parser
+
+
+def _resolve_io_dirs(args):
+    input_dir = os.path.abspath(args.input_dir)
+    if not os.path.isdir(input_dir):
+        raise SystemExit(f"Input directory not found: {input_dir}")
+    output_dir = (
+        os.path.abspath(args.output_dir)
+        if args.output_dir
+        else os.path.join(input_dir, "results")
+    )
+    return input_dir, output_dir
+
+
+def _require_dependencies():
+    if IMPORT_ERROR is not None:
+        raise RuntimeError(
+            "examples/batch_he.py requires optional imaging dependencies. "
+            "Install Pillow, scipy, and scikit-image before running it."
+        ) from IMPORT_ERROR
+
+
 def parse_group(filename):
     """Extract group name from filename like '4NQO+Low-Se+L-MSC-7.mrxs'."""
     m = re.match(r'^(.+)-(\d+)\.mrxs$', filename)
@@ -61,6 +107,7 @@ def parse_group(filename):
 
 def detect_tissue_region(wsi_path, level=6):
     """Detect tissue bounding box at low resolution."""
+    _require_dependencies()
     thumb = load_image(wsi_path, level=level)
     gray = np.mean(thumb.astype(float), axis=2) / 255.0
     
@@ -83,6 +130,7 @@ def detect_tissue_region(wsi_path, level=6):
 
 def detect_nuclei_adaptive(img):
     """Detect nuclei using adaptive thresholding + watershed."""
+    _require_dependencies()
     gray = np.mean(img.astype(float), axis=2)
 
     # Tissue mask
@@ -150,6 +198,7 @@ def detect_nuclei_adaptive(img):
 
 def analyze_wsi_tiled(wsi_path, info):
     """Analyze WSI using tile-based processing."""
+    _require_dependencies()
     # Detect tissue region at low resolution
     tissue_bbox = detect_tissue_region(wsi_path, level=TISSUE_LEVEL)
     if tissue_bbox is None:
@@ -248,18 +297,22 @@ def analyze_wsi_tiled(wsi_path, info):
     }
 
 
-def main():
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
+def main(argv=None):
+    args = build_parser().parse_args(argv)
+    input_dir, output_dir = _resolve_io_dirs(args)
+    _require_dependencies()
+
+    os.makedirs(output_dir, exist_ok=True)
     
     # Discover all .mrxs files
-    mrxs_files = sorted(f for f in os.listdir(INPUT_DIR) if f.endswith('.mrxs'))
+    mrxs_files = sorted(f for f in os.listdir(input_dir) if f.endswith('.mrxs'))
     print(f"Found {len(mrxs_files)} .mrxs files\n")
     
     all_results = {}
     group_results = defaultdict(list)
     
     for i, fname in enumerate(mrxs_files, 1):
-        path = os.path.join(INPUT_DIR, fname)
+        path = os.path.join(input_dir, fname)
         name = os.path.splitext(fname)[0]
         group = parse_group(fname)
         
@@ -315,14 +368,14 @@ def main():
         # Save per-slide JSON report
         report = {k: v for k, v in results.items() if k != "cell_data"}
         report["group"] = group
-        report_path = os.path.join(OUTPUT_DIR, f"{name}_report.json")
+        report_path = os.path.join(output_dir, f"{name}_report.json")
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2, default=str)
         
         # Save cell data CSV
         cell_data = results.get("cell_data", [])
         if cell_data:
-            csv_path = os.path.join(OUTPUT_DIR, f"{name}_cells.csv")
+            csv_path = os.path.join(output_dir, f"{name}_cells.csv")
             with open(csv_path, "w", newline="") as f:
                 writer = csv.DictWriter(f, fieldnames=["centroid", "area", "circularity", "hematoxylin_od", "cell_type"])
                 writer.writeheader()
@@ -386,7 +439,7 @@ def main():
         print(f"{grp:<25} {n:>3} {nuc_str:>14} {inf_str:>14} {den_str:>16} {sco_str:>12}")
     
     # Save summary
-    summary_path = os.path.join(OUTPUT_DIR, "summary.json")
+    summary_path = os.path.join(output_dir, "summary.json")
     with open(summary_path, "w") as f:
         json.dump({
             "per_slide": all_results,

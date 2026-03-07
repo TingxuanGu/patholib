@@ -21,23 +21,21 @@ def build_parser():
     p.add_argument("--marker", default="Unknown")
     p.add_argument("--detection-method", default="cellpose",
                    choices=["cellpose", "watershed"])
-    p.add_argument("--stain-vector", default="auto", choices=["auto", "custom"])
-    p.add_argument("--scoring", default="h-score,percentage")
     p.add_argument("--weak-threshold", type=float, default=0.10)
     p.add_argument("--moderate-threshold", type=float, default=0.25)
     p.add_argument("--strong-threshold", type=float, default=0.45)
     p.add_argument("--ring-width", type=int, default=4)
     p.add_argument("--min-area", type=int, default=30)
     p.add_argument("--max-area", type=int, default=800)
+    p.add_argument("--fail-fast", action="store_true",
+                   help="Abort instead of using the generic fallback when a specialized analyzer is unavailable")
+    p.add_argument("--use-gpu", action="store_true",
+                   help="Enable GPU acceleration for Cellpose when available")
     p.add_argument("--normalize-stain", action="store_true")
     p.add_argument("--stain-reference", default=None)
     p.add_argument("--output-dir", default="./results")
     p.add_argument("--save-overlay", action="store_true")
     p.add_argument("--save-csv", action="store_true")
-    p.add_argument("--tile-size", type=int, default=256)
-    p.add_argument("--magnification", type=float, default=20.0)
-    p.add_argument("--batch-size", type=int, default=32)
-    p.add_argument("--num-workers", type=int, default=4)
     return p
 
 
@@ -65,8 +63,6 @@ def apply_stain_normalization(image, reference_path=None):
 def build_params(args):
     return {
         "detection_method": args.detection_method,
-        "stain_vector": args.stain_vector,
-        "scoring_methods": [s.strip() for s in args.scoring.split(",")],
         "weak_threshold": args.weak_threshold,
         "moderate_threshold": args.moderate_threshold,
         "strong_threshold": args.strong_threshold,
@@ -75,10 +71,8 @@ def build_params(args):
         "max_area": args.max_area,
         "stain_type": args.stain_type,
         "marker": args.marker,
-        "tile_size": args.tile_size,
-        "magnification": args.magnification,
-        "batch_size": args.batch_size,
-        "num_workers": args.num_workers,
+        "fail_fast": args.fail_fast,
+        "use_gpu": args.use_gpu,
     }
 
 
@@ -94,8 +88,11 @@ def run_analysis(image, params):
         elif st == "cytoplasmic":
             from patholib.analysis.ihc_cytoplasmic import analyze_cytoplasmic_ihc
             return analyze_cytoplasmic_ihc(image, params)
-    except (ImportError, ModuleNotFoundError):
-        pass
+    except (ImportError, ModuleNotFoundError) as exc:
+        if params.get("fail_fast"):
+            raise RuntimeError(
+                f"Specialized {st} IHC analyzer unavailable: {exc}"
+            ) from exc
     return _generic_ihc_analysis(image, params)
 
 

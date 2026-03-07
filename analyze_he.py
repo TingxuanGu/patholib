@@ -24,23 +24,23 @@ def build_parser():
     p.add_argument("--detection-method", default="cellpose",
                    choices=["cellpose", "watershed"])
     p.add_argument("--mpp", type=float, default=None,
-                   help="Microns per pixel (auto-detect if None)")
+                   help="Microns per pixel; required for physical-unit outputs")
     p.add_argument("--inflammatory-max-area", type=int, default=80)
     p.add_argument("--inflammatory-min-circularity", type=float, default=0.7)
     p.add_argument("--grid-size", type=int, default=200,
                    help="Grid cell size in micrometers")
     p.add_argument("--classifier-path", default=None,
                    help="Path to trained region classifier model")
+    p.add_argument("--fail-fast", action="store_true",
+                   help="Abort instead of silently falling back when Cellpose is unavailable")
+    p.add_argument("--use-gpu", action="store_true",
+                   help="Enable GPU acceleration for Cellpose when available")
     p.add_argument("--normalize-stain", action="store_true")
     p.add_argument("--stain-reference", default=None)
     p.add_argument("--output-dir", default="./results")
     p.add_argument("--save-overlay", action="store_true")
     p.add_argument("--save-heatmap", action="store_true")
     p.add_argument("--save-csv", action="store_true")
-    p.add_argument("--tile-size", type=int, default=256)
-    p.add_argument("--magnification", type=float, default=20.0)
-    p.add_argument("--batch-size", type=int, default=32)
-    p.add_argument("--num-workers", type=int, default=4)
     return p
 
 
@@ -66,13 +66,20 @@ def apply_stain_normalization(image, reference_path=None):
 
 
 def build_inflammation_params(args):
-    return {
+    params = {
         "detection_method": args.detection_method,
         "inflammatory_max_area": args.inflammatory_max_area,
         "inflammatory_min_circularity": args.inflammatory_min_circularity,
         "grid_size_um": args.grid_size,
         "mpp": args.mpp,
+        "fail_fast": args.fail_fast,
+        "use_gpu": args.use_gpu,
     }
+    if args.mpp is None:
+        # Without calibration, treat the requested grid size as pixels so the
+        # argument still controls the output instead of silently using defaults.
+        params["grid_size_px"] = args.grid_size
+    return params
 
 
 def build_area_ratio_params(args):

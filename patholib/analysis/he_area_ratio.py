@@ -206,12 +206,7 @@ def _classify_regions_threshold(rgb, tissue_mask, p):
 
 
 def _classify_regions_model(rgb, tissue_mask, p):
-    import warnings
-    warnings.warn(
-        "Classifier method is temporarily disabled (MVP patch): "
-        "TextureClassifier interface not yet validated. "
-        "Falling back to threshold method.",
-        UserWarning,
-        stacklevel=2,
+    raise NotImplementedError(
+        "Classifier-based area ratio analysis is not available yet. "
+        "Remove classifier_path or use the threshold method."
     )
-    return _classify_regions_threshold(rgb, tissue_mask, p)

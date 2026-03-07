@@ -22,7 +22,7 @@ try:
 except ImportError:
     HAS_PIL = False
 
-SOFTWARE_VERSION = "patholib 0.1.0"
+SOFTWARE_VERSION = "patholib 0.2.0"
 
 
 class NumpyJSONEncoder(json.JSONEncoder):

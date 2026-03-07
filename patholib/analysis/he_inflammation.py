@@ -11,6 +11,7 @@ morphological classification, and grid-based scoring.
 import numpy as np
 from skimage import measure, morphology, filters
 from scipy import ndimage
+import warnings
 
 
 DEFAULT_PARAMS = {
@@ -106,21 +107,20 @@ def _he_color_deconvolution(rgb):
 
 def _detect_nuclei(rgb, hematoxylin, p):
     if p["detection_method"] == "cellpose":
-        labels = _detect_cellpose(rgb)
-        if labels is not None:
+        try:
+            from patholib.detection.cell_detector_dl import detect_nuclei_cellpose
+            labels, _, _ = detect_nuclei_cellpose(
+                rgb,
+                model_type="nuclei",
+                gpu=bool(p.get("use_gpu", False)),
+                params=p,
+            )
             return labels
+        except Exception as exc:
+            if p.get("fail_fast"):
+                raise RuntimeError(f"Cellpose detection failed: {exc}") from exc
+            warnings.warn(f"Cellpose unavailable ({exc}); falling back to watershed.")
     return _detect_watershed(hematoxylin, p)
-
-
-def _detect_cellpose(rgb):
-    try:
-        from cellpose import models
-        model = models.Cellpose(model_type="nuclei", gpu=False)
-        masks, *_ = model.eval(rgb, diameter=None, channels=[0, 0],
-                               flow_threshold=0.4, cellprob_threshold=0.0)
-        return masks.astype(np.int32)
-    except Exception:
-        return None
 
 
 def _detect_watershed(hematoxylin, p):
@@ -194,7 +194,10 @@ def _inflammatory_density(n, tpx, mpp):
 def _grid_scoring(shape, cell_data, p, tissue_mask):
     h, w = shape[:2]
     mpp = p.get("mpp")
-    gs = max(1, int(p["grid_size_um"] / mpp)) if (mpp and mpp > 0) else max(1, p["grid_size_px"])
+    if mpp and mpp > 0:
+        gs = max(1, int(p["grid_size_um"] / mpp))
+    else:
+        gs = max(1, int(p.get("grid_size_px", p["grid_size_um"])))
     nr = max(1, int(np.ceil(h / gs)))
     nc = max(1, int(np.ceil(w / gs)))
     counts = np.zeros((nr, nc), dtype=np.float64)
