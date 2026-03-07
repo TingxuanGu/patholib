@@ -113,6 +113,10 @@ patholib_deploy/
 
 See the `examples/` directory for batch processing scripts and parameter tuning examples.
 
+## Benchmarking
+
+See [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md) for the first public benchmark plan covering `PanNuke`, `BCSS`, `BCData`, and `HER2-IHC-40x`.
+
 ## License
 
 MIT License - see LICENSE file for details.

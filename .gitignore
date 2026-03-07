@@ -37,6 +37,7 @@ env/
 results/
 *.log
 *.csv
+!benchmarks/results_template.csv
 *.xlsx
 *.png
 *.jpg

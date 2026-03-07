@@ -113,6 +113,10 @@ patholib_deploy/
 
 查看 `examples/` 目录获取批处理脚本和参数调优示例。
 
+## Benchmark
+
+第一阶段公开 benchmark 计划见 [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md)，当前优先覆盖 `PanNuke`、`BCSS`、`BCData` 和 `HER2-IHC-40x`。
+
 ## 许可证
 
 MIT License - 详见 LICENSE 文件。

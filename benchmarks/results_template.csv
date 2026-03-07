@@ -1,0 +1,6 @@
+phase,dataset,split,task,method_family,method_name,detection_backend,normalization,mpp_or_scale,metric_name,metric_value,commit,run_date,notes
+phase1,PanNuke,official_fold,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,PQ,,,
+phase1,PanNuke,official_fold,he_nuclei,patholib,cellpose,cellpose,off,0.25 um/px,PQ,,,
+phase1,BCSS,official_split,he_region,patholib,watershed,watershed,off,official,Dice_tumor,,,
+phase1,BCData,official_split,ihc_nuclear,patholib,watershed,watershed,off,official,F1,,,
+phase1,HER2-IHC-40x,official_split,ihc_membrane,patholib,watershed,watershed,off,40x,quadratic_weighted_kappa,,,
