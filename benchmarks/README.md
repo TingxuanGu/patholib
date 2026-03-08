@@ -7,6 +7,7 @@ This directory tracks public benchmark plans and comparable result tables for `p
 - Plan: [phase1_plan.md](phase1_plan.md)
 - Result template: [results_template.csv](results_template.csv)
 - BCData note: [bcdata.md](bcdata.md)
+- HER2-IHC-40x note: [her2_ihc_40x.md](her2_ihc_40x.md)
 
 ## Scope
 
