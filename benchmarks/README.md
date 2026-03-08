@@ -8,6 +8,7 @@ This directory tracks public benchmark plans and comparable result tables for `p
 - Result template: [results_template.csv](results_template.csv)
 - BCData note: [bcdata.md](bcdata.md)
 - HER2-IHC-40x note: [her2_ihc_40x.md](her2_ihc_40x.md)
+- Aggregation script: `python3 benchmarks/scripts/aggregate_phase1.py --eval-json ... --output-dir ...`
 
 ## Scope
 
