@@ -3,7 +3,14 @@
 ## Source
 
 - Dataset site: <https://sites.google.com/view/bcdataset>
+- Direct download file: <https://drive.google.com/file/d/16W04QOR1E-G3ifc4061Be4eGpjRYDlkA/view?usp=sharing>
 - Phase-1 plan: [phase1_plan.md](phase1_plan.md)
+
+## Download
+
+Use the Google Site as the canonical entry page. The current public download button on that page resolves to the Google Drive file linked above.
+
+After extraction, keep the original split layout because the benchmark helpers expect the public `images/<split>/` and `annotations/<split>/` structure.
 
 The BCData site states that:
 

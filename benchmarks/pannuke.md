@@ -2,9 +2,16 @@
 
 ## Source
 
+- Official dataset page: <https://warwick.ac.uk/fac/sci/dcs/research/tia/data/pannuke>
 - Dataset card: <https://huggingface.co/datasets/RationAI/PanNuke>
 - Official metrics repository: <https://github.com/TissueImageAnalytics/PanNuke-metrics>
 - Phase-1 plan: [phase1_plan.md](phase1_plan.md)
+
+## Download
+
+Use the Warwick page as the canonical dataset entry point. In practice, the Hugging Face mirror is often easier to access today, but it is packaged as parquet rather than the `images.npy` / `masks.npy` files expected by the current `patholib` benchmark scaffold.
+
+If you download from Hugging Face, plan to add a conversion step before running `python3 benchmarks/scripts/pannuke.py`.
 
 `patholib` does not currently implement the full PanNuke 5-class nuclei taxonomy. The phase-1 scaffold therefore evaluates two things explicitly:
 

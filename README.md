@@ -115,7 +115,7 @@ See the `examples/` directory for batch processing scripts and parameter tuning 
 
 ## Benchmarking
 
-See [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md) for the first public benchmark plan covering `PanNuke`, `BCSS`, `BCData`, and `HER2-IHC-40x`.
+See [benchmarks/README.md](benchmarks/README.md) for the benchmark index and dataset access notes. The phase-1 public benchmark plan is documented in [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md) and currently covers `PanNuke`, `BCSS`, `BCData`, and `HER2-IHC-40x`.
 
 ## License
 

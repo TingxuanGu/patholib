@@ -13,6 +13,17 @@ This directory tracks public benchmark plans and comparable result tables for `p
 - Aggregation script: `python3 benchmarks/scripts/aggregate_phase1.py --eval-json ... --output-dir ...`
 - Orchestration script: `python3 benchmarks/scripts/run_phase1.py --output-dir ... --smoke`
 
+## Dataset Access
+
+Use the dataset-specific notes below for layout and evaluation details. Public acquisition entry points for the current phase-1 datasets are:
+
+| Dataset | Primary public entry | Download / mirror | Notes |
+| --- | --- | --- | --- |
+| `BCData` | <https://sites.google.com/view/bcdataset> | Google Drive file: <https://drive.google.com/file/d/16W04QOR1E-G3ifc4061Be4eGpjRYDlkA/view?usp=sharing> | The public site documents the expected `images/` and `annotations/` layout. |
+| `HER2-IHC-40x` | Zenodo record: <https://zenodo.org/records/15179608> | Preprocessing repo: <https://github.com/seraju77/HER2-IHC-40x-data-preprocessing> | The Zenodo record is the canonical dataset source. |
+| `BCSS` | Repository: <https://github.com/PathologyDataScience/BCSS> | Google Drive folder: <https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing> | Prefer the repository README if you need the authors' official download flow or metadata. |
+| `PanNuke` | Official page: <https://warwick.ac.uk/fac/sci/dcs/research/tia/data/pannuke> | Hugging Face mirror: <https://huggingface.co/datasets/RationAI/PanNuke> | The current `patholib` scaffold expects `images.npy` / `masks.npy`; if you use the parquet mirror, convert it first. |
+
 ## Scope
 
 Phase 1 focuses on four public datasets that best match the current `patholib` feature set:

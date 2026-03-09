@@ -3,7 +3,12 @@
 ## Source
 
 - Dataset record: <https://zenodo.org/records/15179608>
+- Optional preprocessing helper: <https://github.com/seraju77/HER2-IHC-40x-data-preprocessing>
 - Phase-1 plan: [phase1_plan.md](phase1_plan.md)
+
+## Download
+
+Use the Zenodo record as the canonical source for the dataset archive. The preprocessing repository above is optional and only useful if you need to reproduce the authors' patch preparation flow or inspect their extraction conventions.
 
 The Zenodo record states that:
 

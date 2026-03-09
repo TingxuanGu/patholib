@@ -115,7 +115,7 @@ patholib_deploy/
 
 ## Benchmark
 
-第一阶段公开 benchmark 计划见 [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md)，当前优先覆盖 `PanNuke`、`BCSS`、`BCData` 和 `HER2-IHC-40x`。
+Benchmark 总入口和数据下载说明见 [benchmarks/README.md](benchmarks/README.md)。第一阶段公开 benchmark 计划见 [benchmarks/phase1_plan.md](benchmarks/phase1_plan.md)，当前优先覆盖 `PanNuke`、`BCSS`、`BCData` 和 `HER2-IHC-40x`。
 
 ## 许可证
 

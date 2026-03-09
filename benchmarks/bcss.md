@@ -3,7 +3,12 @@
 ## Source
 
 - Dataset repository: <https://github.com/PathologyDataScience/BCSS>
+- Dataset folder linked by the repository: <https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing>
 - Phase-1 plan: [phase1_plan.md](phase1_plan.md)
+
+## Download
+
+Start from the repository README because it documents the official download flow, label taxonomy, and metadata. If you only need the public image and mask bundle, the Google Drive folder above is the current direct entry point exposed by the authors' repository.
 
 `patholib` does not produce the full native BCSS label taxonomy today. The current phase-1 scaffold therefore evaluates a collapsed subset aligned with `patholib.analysis.he_area_ratio`:
 

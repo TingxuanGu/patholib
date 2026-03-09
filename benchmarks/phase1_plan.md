@@ -15,10 +15,25 @@ The phase 1 target is not to beat every published model. The target is to produc
 
 | Priority | Dataset | Public Link | `patholib` mapping | Why it is phase 1 |
 | --- | --- | --- | --- | --- |
-| 1 | PanNuke | <https://huggingface.co/datasets/RationAI/PanNuke> | `analyze_he.py --mode inflammation` and nuclei detection backends | Broad H&E nuclei benchmark, includes inflammatory nuclei, standard public comparison point |
-| 2 | BCSS | <https://github.com/PathologyDataScience/BCSS> | `analyze_he.py --mode area-ratio` | Directly tests region segmentation quality and area-ratio proxy quality |
-| 3 | BCData | <https://sites.google.com/view/bcdataset> | `analyze_ihc.py --stain-type nuclear --marker Ki67` | Strong fit for positive/negative tumor-cell detection and Ki-67 index estimation |
-| 4 | HER2-IHC-40x | <https://zenodo.org/records/15179608> | `analyze_ihc.py --stain-type membrane --marker HER2` | Best phase-1 public fit for membrane HER2 grading without full challenge infrastructure |
+| 1 | PanNuke | Official page: <https://warwick.ac.uk/fac/sci/dcs/research/tia/data/pannuke> | `analyze_he.py --mode inflammation` and nuclei detection backends | Broad H&E nuclei benchmark, includes inflammatory nuclei, standard public comparison point |
+| 2 | BCSS | Repository: <https://github.com/PathologyDataScience/BCSS> | `analyze_he.py --mode area-ratio` | Directly tests region segmentation quality and area-ratio proxy quality |
+| 3 | BCData | Site: <https://sites.google.com/view/bcdataset> | `analyze_ihc.py --stain-type nuclear --marker Ki67` | Strong fit for positive/negative tumor-cell detection and Ki-67 index estimation |
+| 4 | HER2-IHC-40x | Zenodo: <https://zenodo.org/records/15179608> | `analyze_ihc.py --stain-type membrane --marker HER2` | Best phase-1 public fit for membrane HER2 grading without full challenge infrastructure |
+
+## Acquisition Shortcuts
+
+- `PanNuke`
+  - Official page: <https://warwick.ac.uk/fac/sci/dcs/research/tia/data/pannuke>
+  - Mirror used in many current workflows: <https://huggingface.co/datasets/RationAI/PanNuke>
+- `BCSS`
+  - Repository: <https://github.com/PathologyDataScience/BCSS>
+  - Dataset folder linked from the repository: <https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing>
+- `BCData`
+  - Site: <https://sites.google.com/view/bcdataset>
+  - Direct download link exposed on the site: <https://drive.google.com/file/d/16W04QOR1E-G3ifc4061Be4eGpjRYDlkA/view?usp=sharing>
+- `HER2-IHC-40x`
+  - Canonical dataset record: <https://zenodo.org/records/15179608>
+  - Optional preprocessing helper: <https://github.com/seraju77/HER2-IHC-40x-data-preprocessing>
 
 ## Deferred To Phase 2
 
@@ -162,10 +177,14 @@ Phase 1 is useful if it answers these questions clearly:
 
 Public dataset references checked for this plan:
 
+- PanNuke official page: <https://warwick.ac.uk/fac/sci/dcs/research/tia/data/pannuke>
 - PanNuke dataset card: <https://huggingface.co/datasets/RationAI/PanNuke>
 - BCSS repository: <https://github.com/PathologyDataScience/BCSS>
+- BCSS dataset folder: <https://drive.google.com/drive/folders/1zqbdkQF8i5cEmZOGmbdQm-EP8dRYtvss?usp=sharing>
 - BCData site: <https://sites.google.com/view/bcdataset>
+- BCData download file: <https://drive.google.com/file/d/16W04QOR1E-G3ifc4061Be4eGpjRYDlkA/view?usp=sharing>
 - HER2-IHC-40x dataset record: <https://zenodo.org/records/15179608>
+- HER2-IHC-40x preprocessing repo: <https://github.com/seraju77/HER2-IHC-40x-data-preprocessing>
 - TIGER challenge: <https://tiger.grand-challenge.org/>
 - SHIDC-B-Ki-67 paper: <https://www.nature.com/articles/s41598-021-86912-w>
 - Warwick HER2 challenge paper/archive: <https://wrap.warwick.ac.uk/90840/>
