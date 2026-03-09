@@ -1,4 +1,13 @@
 phase,dataset,split,task,method_family,method_name,detection_backend,normalization,mpp_or_scale,metric_name,metric_value,commit,run_date,notes
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,images_evaluated,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,tumor_dice,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,stroma_dice,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,necrosis_dice,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,tumor_iou,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,stroma_iou,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,necrosis_iou,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,tumor_ratio_mae,,,
+phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,necrosis_ratio_mae,,,
 phase1,BCData,test,ihc_nuclear,patholib,watershed,watershed,off,official,images_evaluated,,,
 phase1,BCData,test,ihc_nuclear,patholib,watershed,watershed,off,official,positive_f1,,,
 phase1,BCData,test,ihc_nuclear,patholib,watershed,watershed,off,official,negative_f1,,,

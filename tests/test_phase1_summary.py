@@ -9,16 +9,44 @@ from benchmarks import phase1_summary
 class Phase1SummaryTests(unittest.TestCase):
     def test_aggregate_eval_summaries_builds_long_and_wide_rows(self):
         with tempfile.TemporaryDirectory() as tmpdir:
+            bcss_dir = os.path.join(tmpdir, "bcss-threshold")
             bc_dir = os.path.join(tmpdir, "bcdata-watershed")
             her2_dir = os.path.join(tmpdir, "her2-watershed")
+            os.makedirs(bcss_dir)
             os.makedirs(bc_dir)
             os.makedirs(her2_dir)
 
+            bcss_eval = os.path.join(bcss_dir, "bcss_eval_summary.json")
+            bcss_run = os.path.join(bcss_dir, "bcss_run_summary.json")
             bc_eval = os.path.join(bc_dir, "bcdata_test_eval_summary.json")
             bc_run = os.path.join(bc_dir, "bcdata_test_run_summary.json")
             her2_eval = os.path.join(her2_dir, "her2_ihc_40x_test_eval_summary.json")
             her2_run = os.path.join(her2_dir, "her2_ihc_40x_test_run_summary.json")
 
+            with open(bcss_eval, "w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "dataset": "BCSS",
+                        "images_evaluated": 10,
+                        "per_class": {
+                            "tumor": {"dice": 0.7, "iou": 0.55},
+                            "stroma": {"dice": 0.6, "iou": 0.45},
+                            "necrosis": {"dice": 0.5, "iou": 0.35},
+                        },
+                        "tumor_ratio_mae": 8.0,
+                        "necrosis_ratio_mae": 12.0,
+                        "label_map": "/tmp/bcss_label_map.json",
+                    },
+                    handle,
+                )
+            with open(bcss_run, "w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "parameters": {"method": "threshold"},
+                        "normalize_stain": False,
+                    },
+                    handle,
+                )
             with open(bc_eval, "w", encoding="utf-8") as handle:
                 json.dump(
                     {
@@ -72,25 +100,43 @@ class Phase1SummaryTests(unittest.TestCase):
                 )
 
             long_rows, wide_rows = phase1_summary.aggregate_eval_summaries(
-                [bc_eval, her2_eval],
+                [bcss_eval, bc_eval, her2_eval],
                 commit="abc123",
                 run_date="2026-03-08T12:00:00",
             )
 
-        self.assertEqual(len(wide_rows), 2)
-        self.assertEqual(len(long_rows), 11)
-        self.assertEqual(wide_rows[0]["dataset"], "BCData")
-        self.assertEqual(wide_rows[0]["detection_backend"], "watershed")
-        self.assertEqual(wide_rows[0]["normalization"], "off")
-        self.assertEqual(wide_rows[0]["positive_f1"], 0.81)
-        self.assertEqual(wide_rows[1]["dataset"], "HER2-IHC-40x")
-        self.assertEqual(wide_rows[1]["detection_backend"], "cellpose")
-        self.assertEqual(wide_rows[1]["normalization"], "on")
-        self.assertEqual(wide_rows[1]["quadratic_weighted_kappa"], 0.82)
+        self.assertEqual(len(wide_rows), 3)
+        self.assertEqual(len(long_rows), 20)
+        self.assertEqual(wide_rows[0]["dataset"], "BCSS")
+        self.assertEqual(wide_rows[0]["detection_backend"], "threshold")
+        self.assertEqual(wide_rows[0]["tumor_dice"], 0.7)
+        self.assertEqual(wide_rows[1]["dataset"], "BCData")
+        self.assertEqual(wide_rows[1]["detection_backend"], "watershed")
+        self.assertEqual(wide_rows[1]["normalization"], "off")
+        self.assertEqual(wide_rows[1]["positive_f1"], 0.81)
+        self.assertEqual(wide_rows[2]["dataset"], "HER2-IHC-40x")
+        self.assertEqual(wide_rows[2]["detection_backend"], "cellpose")
+        self.assertEqual(wide_rows[2]["normalization"], "on")
+        self.assertEqual(wide_rows[2]["quadratic_weighted_kappa"], 0.82)
 
     def test_render_markdown_summary_contains_both_datasets(self):
         markdown = phase1_summary.render_markdown_summary(
             [
+                {
+                    "dataset": "BCSS",
+                    "split": "",
+                    "method_name": "threshold",
+                    "detection_backend": "threshold",
+                    "normalization": "off",
+                    "images_evaluated": 10,
+                    "positive_f1": "",
+                    "mean_f1": "",
+                    "positive_percentage_mae": "",
+                    "tumor_dice": 0.7,
+                    "accuracy": "",
+                    "macro_f1": "",
+                    "quadratic_weighted_kappa": "",
+                },
                 {
                     "dataset": "BCData",
                     "split": "test",
@@ -122,6 +168,7 @@ class Phase1SummaryTests(unittest.TestCase):
             ]
         )
 
+        self.assertIn("BCSS", markdown)
         self.assertIn("BCData", markdown)
         self.assertIn("HER2-IHC-40x", markdown)
         self.assertIn("0.8100", markdown)

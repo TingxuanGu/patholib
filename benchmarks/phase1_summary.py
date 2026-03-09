@@ -10,6 +10,21 @@ from typing import Iterable
 
 
 DATASET_SPECS = {
+    "BCSS": {
+        "task": "he_region",
+        "scale": "official",
+        "metrics": (
+            ("images_evaluated", "images_evaluated"),
+            ("tumor_dice", ("per_class", "tumor", "dice")),
+            ("stroma_dice", ("per_class", "stroma", "dice")),
+            ("necrosis_dice", ("per_class", "necrosis", "dice")),
+            ("tumor_iou", ("per_class", "tumor", "iou")),
+            ("stroma_iou", ("per_class", "stroma", "iou")),
+            ("necrosis_iou", ("per_class", "necrosis", "iou")),
+            ("tumor_ratio_mae", "tumor_ratio_mae"),
+            ("necrosis_ratio_mae", "necrosis_ratio_mae"),
+        ),
+    },
     "BCData": {
         "task": "ihc_nuclear",
         "scale": "official",
@@ -69,6 +84,14 @@ WIDE_FIELDNAMES = [
     "positive_percentage_mae",
     "positive_percentage_rmse",
     "positive_percentage_pearson_r",
+    "tumor_dice",
+    "stroma_dice",
+    "necrosis_dice",
+    "tumor_iou",
+    "stroma_iou",
+    "necrosis_iou",
+    "tumor_ratio_mae",
+    "necrosis_ratio_mae",
     "accuracy",
     "macro_f1",
     "quadratic_weighted_kappa",
@@ -112,7 +135,9 @@ def infer_run_summary_path(eval_summary_path: str, summary: dict) -> str | None:
     dataset = detect_dataset(summary)
     split = summary.get("split", "")
     directory = os.path.dirname(eval_summary_path)
-    if dataset == "BCData":
+    if dataset == "BCSS":
+        candidate = os.path.join(directory, "bcss_run_summary.json")
+    elif dataset == "BCData":
         candidate = os.path.join(directory, f"bcdata_{split}_run_summary.json")
     elif dataset == "HER2-IHC-40x":
         candidate = os.path.join(directory, f"her2_ihc_40x_{split}_run_summary.json")
@@ -125,7 +150,7 @@ def infer_method_name(eval_summary_path: str, run_summary: dict | None) -> str:
     """Infer a readable method name."""
     if run_summary:
         params = run_summary.get("parameters", {})
-        backend = params.get("detection_method")
+        backend = params.get("detection_method", params.get("method"))
         if backend:
             return str(backend)
     return os.path.basename(os.path.dirname(eval_summary_path)) or "unknown"
@@ -135,7 +160,7 @@ def infer_detection_backend(run_summary: dict | None, method_name: str) -> str:
     """Infer detection backend for summary rows."""
     if run_summary:
         params = run_summary.get("parameters", {})
-        backend = params.get("detection_method")
+        backend = params.get("detection_method", params.get("method"))
         if backend:
             return str(backend)
     return method_name
@@ -156,6 +181,8 @@ def build_notes(summary: dict) -> str:
             f"match_radius_px={summary.get('match_radius_px', '')}; "
             f"coord_order={summary.get('annotation_coord_order', '')}"
         )
+    if dataset == "BCSS":
+        return f"label_map={summary.get('label_map', '')}"
     heuristic = summary.get("heuristic", {})
     return (
         f"zero_cutoff={heuristic.get('zero_cutoff', '')}; "
@@ -310,8 +337,8 @@ def render_markdown_summary(wide_rows: Iterable[dict]) -> str:
     lines = [
         "# Phase 1 Benchmark Summary",
         "",
-        "| Dataset | Split | Method | Backend | Norm | Images | Positive F1 | Mean F1 | Ki67 MAE | Accuracy | Macro F1 | QWK |",
-        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Dataset | Split | Method | Backend | Norm | Images | Positive F1 | Mean F1 | Ki67 MAE | Tumor Dice | Accuracy | Macro F1 | QWK |",
+        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in wide_rows:
         lines.append(
@@ -323,13 +350,14 @@ def render_markdown_summary(wide_rows: Iterable[dict]) -> str:
                     str(row["method_name"]),
                     str(row["detection_backend"]),
                     str(row["normalization"]),
-                    _format_metric(row["images_evaluated"]),
-                    _format_metric(row["positive_f1"]),
-                    _format_metric(row["mean_f1"]),
-                    _format_metric(row["positive_percentage_mae"]),
-                    _format_metric(row["accuracy"]),
-                    _format_metric(row["macro_f1"]),
-                    _format_metric(row["quadratic_weighted_kappa"]),
+                    _format_metric(row.get("images_evaluated")),
+                    _format_metric(row.get("positive_f1")),
+                    _format_metric(row.get("mean_f1")),
+                    _format_metric(row.get("positive_percentage_mae")),
+                    _format_metric(row.get("tumor_dice")),
+                    _format_metric(row.get("accuracy")),
+                    _format_metric(row.get("macro_f1")),
+                    _format_metric(row.get("quadratic_weighted_kappa")),
                 ]
             )
             + " |"
