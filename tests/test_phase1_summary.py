@@ -9,13 +9,17 @@ from benchmarks import phase1_summary
 class Phase1SummaryTests(unittest.TestCase):
     def test_aggregate_eval_summaries_builds_long_and_wide_rows(self):
         with tempfile.TemporaryDirectory() as tmpdir:
+            pannuke_dir = os.path.join(tmpdir, "pannuke-watershed")
             bcss_dir = os.path.join(tmpdir, "bcss-threshold")
             bc_dir = os.path.join(tmpdir, "bcdata-watershed")
             her2_dir = os.path.join(tmpdir, "her2-watershed")
+            os.makedirs(pannuke_dir)
             os.makedirs(bcss_dir)
             os.makedirs(bc_dir)
             os.makedirs(her2_dir)
 
+            pannuke_eval = os.path.join(pannuke_dir, "pannuke_eval_summary.json")
+            pannuke_run = os.path.join(pannuke_dir, "pannuke_run_summary.json")
             bcss_eval = os.path.join(bcss_dir, "bcss_eval_summary.json")
             bcss_run = os.path.join(bcss_dir, "bcss_run_summary.json")
             bc_eval = os.path.join(bc_dir, "bcdata_test_eval_summary.json")
@@ -23,6 +27,29 @@ class Phase1SummaryTests(unittest.TestCase):
             her2_eval = os.path.join(her2_dir, "her2_ihc_40x_test_eval_summary.json")
             her2_run = os.path.join(her2_dir, "her2_ihc_40x_test_run_summary.json")
 
+            with open(pannuke_eval, "w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "dataset": "PanNuke",
+                        "split": "test",
+                        "images_evaluated": 15,
+                        "binary_nuclei_dice": 0.76,
+                        "aji": 0.58,
+                        "pq": 0.51,
+                        "all_nuclei_f1": 0.72,
+                        "inflammatory_f1": 0.44,
+                        "inflammatory_channel": 1,
+                    },
+                    handle,
+                )
+            with open(pannuke_run, "w", encoding="utf-8") as handle:
+                json.dump(
+                    {
+                        "parameters": {"detection_method": "watershed"},
+                        "normalize_stain": False,
+                    },
+                    handle,
+                )
             with open(bcss_eval, "w", encoding="utf-8") as handle:
                 json.dump(
                     {
@@ -100,28 +127,48 @@ class Phase1SummaryTests(unittest.TestCase):
                 )
 
             long_rows, wide_rows = phase1_summary.aggregate_eval_summaries(
-                [bcss_eval, bc_eval, her2_eval],
+                [pannuke_eval, bcss_eval, bc_eval, her2_eval],
                 commit="abc123",
                 run_date="2026-03-08T12:00:00",
             )
 
-        self.assertEqual(len(wide_rows), 3)
-        self.assertEqual(len(long_rows), 20)
-        self.assertEqual(wide_rows[0]["dataset"], "BCSS")
-        self.assertEqual(wide_rows[0]["detection_backend"], "threshold")
-        self.assertEqual(wide_rows[0]["tumor_dice"], 0.7)
-        self.assertEqual(wide_rows[1]["dataset"], "BCData")
-        self.assertEqual(wide_rows[1]["detection_backend"], "watershed")
-        self.assertEqual(wide_rows[1]["normalization"], "off")
-        self.assertEqual(wide_rows[1]["positive_f1"], 0.81)
-        self.assertEqual(wide_rows[2]["dataset"], "HER2-IHC-40x")
-        self.assertEqual(wide_rows[2]["detection_backend"], "cellpose")
-        self.assertEqual(wide_rows[2]["normalization"], "on")
-        self.assertEqual(wide_rows[2]["quadratic_weighted_kappa"], 0.82)
+        self.assertEqual(len(wide_rows), 4)
+        self.assertEqual(len(long_rows), 26)
+        self.assertEqual(wide_rows[0]["dataset"], "PanNuke")
+        self.assertEqual(wide_rows[0]["detection_backend"], "watershed")
+        self.assertEqual(wide_rows[0]["pq"], 0.51)
+        self.assertEqual(wide_rows[1]["dataset"], "BCSS")
+        self.assertEqual(wide_rows[1]["detection_backend"], "threshold")
+        self.assertEqual(wide_rows[1]["tumor_dice"], 0.7)
+        self.assertEqual(wide_rows[2]["dataset"], "BCData")
+        self.assertEqual(wide_rows[2]["detection_backend"], "watershed")
+        self.assertEqual(wide_rows[2]["normalization"], "off")
+        self.assertEqual(wide_rows[2]["positive_f1"], 0.81)
+        self.assertEqual(wide_rows[3]["dataset"], "HER2-IHC-40x")
+        self.assertEqual(wide_rows[3]["detection_backend"], "cellpose")
+        self.assertEqual(wide_rows[3]["normalization"], "on")
+        self.assertEqual(wide_rows[3]["quadratic_weighted_kappa"], 0.82)
 
     def test_render_markdown_summary_contains_both_datasets(self):
         markdown = phase1_summary.render_markdown_summary(
             [
+                {
+                    "dataset": "PanNuke",
+                    "split": "test",
+                    "method_name": "watershed",
+                    "detection_backend": "watershed",
+                    "normalization": "off",
+                    "images_evaluated": 15,
+                    "pq": 0.51,
+                    "aji": 0.58,
+                    "inflammatory_f1": 0.44,
+                    "tumor_dice": "",
+                    "positive_f1": "",
+                    "positive_percentage_mae": "",
+                    "accuracy": "",
+                    "macro_f1": "",
+                    "quadratic_weighted_kappa": "",
+                },
                 {
                     "dataset": "BCSS",
                     "split": "",
@@ -168,6 +215,7 @@ class Phase1SummaryTests(unittest.TestCase):
             ]
         )
 
+        self.assertIn("PanNuke", markdown)
         self.assertIn("BCSS", markdown)
         self.assertIn("BCData", markdown)
         self.assertIn("HER2-IHC-40x", markdown)

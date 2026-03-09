@@ -10,6 +10,18 @@ from typing import Iterable
 
 
 DATASET_SPECS = {
+    "PanNuke": {
+        "task": "he_nuclei",
+        "scale": "0.25 um/px",
+        "metrics": (
+            ("images_evaluated", "images_evaluated"),
+            ("binary_nuclei_dice", "binary_nuclei_dice"),
+            ("aji", "aji"),
+            ("pq", "pq"),
+            ("all_nuclei_f1", "all_nuclei_f1"),
+            ("inflammatory_f1", "inflammatory_f1"),
+        ),
+    },
     "BCSS": {
         "task": "he_region",
         "scale": "official",
@@ -84,6 +96,11 @@ WIDE_FIELDNAMES = [
     "positive_percentage_mae",
     "positive_percentage_rmse",
     "positive_percentage_pearson_r",
+    "binary_nuclei_dice",
+    "aji",
+    "pq",
+    "all_nuclei_f1",
+    "inflammatory_f1",
     "tumor_dice",
     "stroma_dice",
     "necrosis_dice",
@@ -135,7 +152,9 @@ def infer_run_summary_path(eval_summary_path: str, summary: dict) -> str | None:
     dataset = detect_dataset(summary)
     split = summary.get("split", "")
     directory = os.path.dirname(eval_summary_path)
-    if dataset == "BCSS":
+    if dataset == "PanNuke":
+        candidate = os.path.join(directory, "pannuke_run_summary.json")
+    elif dataset == "BCSS":
         candidate = os.path.join(directory, "bcss_run_summary.json")
     elif dataset == "BCData":
         candidate = os.path.join(directory, f"bcdata_{split}_run_summary.json")
@@ -181,6 +200,8 @@ def build_notes(summary: dict) -> str:
             f"match_radius_px={summary.get('match_radius_px', '')}; "
             f"coord_order={summary.get('annotation_coord_order', '')}"
         )
+    if dataset == "PanNuke":
+        return f"inflammatory_channel={summary.get('inflammatory_channel', '')}"
     if dataset == "BCSS":
         return f"label_map={summary.get('label_map', '')}"
     heuristic = summary.get("heuristic", {})
@@ -337,8 +358,8 @@ def render_markdown_summary(wide_rows: Iterable[dict]) -> str:
     lines = [
         "# Phase 1 Benchmark Summary",
         "",
-        "| Dataset | Split | Method | Backend | Norm | Images | Positive F1 | Mean F1 | Ki67 MAE | Tumor Dice | Accuracy | Macro F1 | QWK |",
-        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Dataset | Split | Method | Backend | Norm | Images | PanNuke PQ | AJI | Inflam F1 | BCSS Tumor Dice | BCData Positive F1 | Ki67 MAE | HER2 Accuracy | Macro F1 | QWK |",
+        "| --- | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for row in wide_rows:
         lines.append(
@@ -351,10 +372,12 @@ def render_markdown_summary(wide_rows: Iterable[dict]) -> str:
                     str(row["detection_backend"]),
                     str(row["normalization"]),
                     _format_metric(row.get("images_evaluated")),
-                    _format_metric(row.get("positive_f1")),
-                    _format_metric(row.get("mean_f1")),
-                    _format_metric(row.get("positive_percentage_mae")),
+                    _format_metric(row.get("pq")),
+                    _format_metric(row.get("aji")),
+                    _format_metric(row.get("inflammatory_f1")),
                     _format_metric(row.get("tumor_dice")),
+                    _format_metric(row.get("positive_f1")),
+                    _format_metric(row.get("positive_percentage_mae")),
                     _format_metric(row.get("accuracy")),
                     _format_metric(row.get("macro_f1")),
                     _format_metric(row.get("quadratic_weighted_kappa")),

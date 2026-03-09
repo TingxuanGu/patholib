@@ -1,4 +1,10 @@
 phase,dataset,split,task,method_family,method_name,detection_backend,normalization,mpp_or_scale,metric_name,metric_value,commit,run_date,notes
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,images_evaluated,,,
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,binary_nuclei_dice,,,
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,aji,,,
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,pq,,,
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,all_nuclei_f1,,,
+phase1,PanNuke,test,he_nuclei,patholib,watershed,watershed,off,0.25 um/px,inflammatory_f1,,,
 phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,images_evaluated,,,
 phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,tumor_dice,,,
 phase1,BCSS,test,he_region,patholib,threshold,threshold,off,official,stroma_dice,,,

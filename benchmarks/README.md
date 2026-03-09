@@ -9,6 +9,7 @@ This directory tracks public benchmark plans and comparable result tables for `p
 - BCData note: [bcdata.md](bcdata.md)
 - BCSS note: [bcss.md](bcss.md)
 - HER2-IHC-40x note: [her2_ihc_40x.md](her2_ihc_40x.md)
+- PanNuke note: [pannuke.md](pannuke.md)
 - Aggregation script: `python3 benchmarks/scripts/aggregate_phase1.py --eval-json ... --output-dir ...`
 
 ## Scope
